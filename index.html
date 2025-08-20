@@ -1,314 +1,373 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Pontinhos — placar final + sem scroll</title>
-    <style>
-        :root { --cell: 36px; --g: 10px; --edge-thick: 12px; --dot: 10px; }
-        * { box-sizing: border-box; }
-        html, body { height: 100%; }
-        body {
-            height: 100dvh; margin: 0; background: #0f172a; color: #e5e7eb;
-            font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-            display: grid; grid-template-rows: auto 1fr; overflow: hidden; /* sem scroll */
-        }
-        header { padding: 12px 16px; display:flex; gap:12px; flex-wrap:wrap; align-items:center; background:#111827; border-bottom:1px solid #1f2937; }
-        header h1 { margin:0; font-size: 16px; font-weight: 700; letter-spacing:.2px; }
-        .controls { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
-        .controls label { background:#0b1220; border:1px solid #1f2937; padding:6px 8px; border-radius:10px; display:flex; gap:8px; align-items:center; }
-        .controls input[type=number] { width:70px; padding:6px 8px; border-radius:8px; border:1px solid #334155; background:#0b1220; color:#e5e7eb; }
-        .btn { padding:8px 12px; border-radius:10px; border:1px solid #334155; background:#0b1220; color:#e5e7eb; cursor:pointer; }
-        .btn:hover { filter: brightness(1.08); }
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Pontinhos — responsivo + mecânicas opcionais</title>
+<style>
+  :root { --cell: 36px; --g: 10px; --edge-thick: 12px; --dot: 10px; }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body{
+    height: 100dvh; margin: 0; background:#0f172a; color:#e5e7eb;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    display:grid; grid-template-rows:auto 1fr; overflow:hidden; /* sem scroll */
+  }
+  header{
+    padding:10px 12px; display:grid; gap:8px;
+    grid-template-columns: 1fr; background:#111827; border-bottom:1px solid #1f2937;
+  }
+  .row{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  .title{ font-weight:700; font-size:16px; letter-spacing:.2px; }
+  .controls .grp{
+    display:flex; gap:6px; align-items:center;
+    background:#0b1220; border:1px solid #1f2937; padding:6px 8px; border-radius:10px;
+  }
+  .controls input[type=number]{ width:70px; padding:6px 8px; border-radius:8px; border:1px solid #334155; background:#0b1220; color:#e5e7eb; }
+  .controls input[type=checkbox]{ accent-color:#22c55e; width:18px; height:18px; }
+  .btn{ padding:8px 12px; border-radius:10px; border:1px solid #334155; background:#0b1220; color:#e5e7eb; cursor:pointer; }
+  .btn[disabled]{ opacity:.5; cursor:not-allowed; }
+  .legend{ color:#cbd5e1; font-size:12px; }
 
-        main {
-            display:grid; grid-template-columns: 1fr 320px; gap:12px; padding:12px;
-            overflow: hidden; /* sem scroll global; painéis rolam por dentro se precisar */
-        }
+  main{ display:grid; grid-template-columns: 1fr; padding:10px; gap:10px; overflow:hidden; }
+  .panel{ background:#0b1220; border:1px solid #1f2937; border-radius:14px; padding:10px; min-height:0; }
+  .status{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+  .badge{ padding:6px 10px; border-radius:999px; font-weight:700; border:1px solid #1f2937; display:inline-flex; gap:8px; align-items:center; }
+  .dot-c{ width:10px; height:10px; border-radius:50%; display:inline-block; }
+  .p1c{ background:#3b82f6; } .p2c{ background:#ef4444; }
 
-        .panel { background:#0b1220; border:1px solid #1f2937; border-radius:14px; padding:10px; min-height:0; }
-        .mainPanel { display:flex; flex-direction:column; min-height:0; }
-        .status { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
-        .badge { padding:6px 10px; border-radius:999px; font-weight:700; border:1px solid #1f2937; display:inline-flex; gap:8px; align-items:center; }
-        .dot-c { width:10px; height:10px; border-radius:50%; display:inline-block; }
-        .p1c { background:#3b82f6; } .p2c { background:#ef4444; }
+  #boardWrapper{ margin-top:8px; flex:1; width:100%; height:100%; display:grid; place-items:center; min-height:0; }
+  #board{
+    display:grid; gap: var(--g);
+    grid-template-columns: repeat(5, var(--cell));
+    grid-template-rows: repeat(5, var(--cell));
+    align-items:center; justify-items:center;
+    max-width:100%; max-height:100%;
+  }
 
-        #boardWrapper { margin-top:8px; flex:1; width:100%; height:100%; display:grid; place-items:center; min-height:0; }
-        #board {
-            display:grid; gap: var(--g);
-            grid-template-columns: repeat(5, var(--cell));
-            grid-template-rows: repeat(5, var(--cell));
-            align-items:center; justify-items:center;
-            max-width:100%; max-height:100%;
-        }
+  .dot{ width: var(--dot); height: var(--dot); background:#e5e7eb; border-radius:50%; }
+  .edge{ all: unset; cursor:pointer; background:#1f2937; border-radius:999px; transition: box-shadow .06s ease, background .1s ease; }
+  .edge:focus-visible{ outline:2px solid #f59e0b; outline-offset:2px; }
+  .edge.h{ width:100%; height: var(--edge-thick); }
+  .edge.v{ height:100%; width: var(--edge-thick); }
+  .edge:hover{ box-shadow:0 0 0 2px #334155 inset; }
+  .edge.p1{ background:#3b82f6; } .edge.p2{ background:#ef4444; }
+  .edge[disabled]{ cursor:default; box-shadow:none; }
 
-        .dot  { width: var(--dot); height: var(--dot); background:#e5e7eb; border-radius:50%; }
-        .edge { all: unset; cursor:pointer; background:#1f2937; border-radius:999px; transition: transform .06s ease, box-shadow .06s ease, background .1s ease; }
-        .edge:focus-visible { outline: 2px solid #f59e0b; outline-offset: 2px; }
-        .edge.h { width: 100%; height: var(--edge-thick); }
-        .edge.v { height: 100%; width: var(--edge-thick); }
-        .edge:hover { box-shadow: 0 0 0 2px #334155 inset; }
-        .edge.p1 { background:#3b82f6; } .edge.p2 { background:#ef4444; }
-        .edge[disabled] { cursor: default; box-shadow:none; }
+  .box{ width:100%; height:100%; border-radius:8px; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:14px; color:#e5e7eb; user-select:none; position:relative; }
+  .box.p1{ background: rgba(59,130,246,.35); }
+  .box.p2{ background: rgba(239,68,68,.35); }
+  .box.bonus:not(.p1):not(.p2){ /* destaque de bônus ainda não capturada */
+    background: linear-gradient(135deg, rgba(250,204,21,.15), rgba(34,197,94,.12));
+    border: 1px dashed rgba(250,204,21,.45);
+  }
+  .box.bonus::after{
+    content:"★"; position:absolute; top:4px; right:6px; font-size:12px; color:#fde047; text-shadow:0 0 6px rgba(250,204,21,.35);
+  }
 
-        .box { width:100%; height:100%; border-radius:8px; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:14px; color:#e5e7eb; user-select:none; }
-        .box.p1 { background: rgba(59,130,246,.35); }
-        .box.p2 { background: rgba(239,68,68,.35); }
-
-        .hist { display:flex; flex-direction:column; min-height:0; }
-        .hist h3 { margin: 0 0 8px 0; font-size: 14px; letter-spacing:.2px; color:#cbd5e1;}
-        .hist ol { margin:0; padding-left: 16px; overflow:auto; flex:1; display:flex; flex-direction:column-reverse; }
-        .hist li { padding:6px 0; border-bottom:1px dashed #1f2937; color:#cbd5e1; }
-
-        footer { text-align:center; font-size:12px; color:#94a3b8; padding:8px 0 10px; }
-        @media (max-width: 860px){ main { grid-template-columns: 1fr 280px; } }
-    </style>
+  /* Mobile refinements */
+  @media (max-width: 640px){
+    .title{ font-size:15px; }
+    .controls input[type=number]{ width:64px; }
+    .badge{ font-size:13px; }
+  }
+</style>
 </head>
 <body>
-<header>
-    <h1>Pontinhos</h1>
-    <div class="controls">
-        <label>Linhas <input id="rowsInput" type="number" min="1" max="15" value="4" /></label>
-        <label>Colunas <input id="colsInput" type="number" min="1" max="15" value="4" /></label>
-        <button id="newGameBtn" class="btn">Nova partida</button>
-        <button id="clearHistBtn" class="btn" title="Limpa o histórico de placares">Limpar histórico</button>
+  <header>
+    <div class="row">
+      <div class="title">Pontinhos</div>
     </div>
-</header>
+    <div class="row controls">
+      <div class="grp">Linhas <input id="rowsInput" type="number" min="1" max="15" value="4" /></div>
+      <div class="grp">Colunas <input id="colsInput" type="number" min="1" max="15" value="4" /></div>
+      <div class="grp"><label><input id="chainToggle" type="checkbox" checked /> Cadeia ativa</label></div>
+      <div class="grp">
+        <label><input id="bonusToggle" type="checkbox" /> Caixas bônus</label>
+        <span>%</span><input id="bonusPct" type="number" min="5" max="60" value="15" title="% de caixas com bônus" />
+      </div>
+      <div class="grp"><label><input id="skipToggle" type="checkbox" /> Pular vez (x1)</label></div>
+      <button id="newGameBtn" class="btn">Nova partida</button>
+    </div>
+    <div class="row legend" id="legendBonus" style="display:none;">★ = caixa bônus vale 2 pontos</div>
+  </header>
 
-<main>
-    <section class="panel mainPanel">
-        <div class="status" id="statusBar">
-            <span class="badge"><span class="dot-c p1c"></span> J1: <strong id="score1">0</strong></span>
-            <span class="badge"><span class="dot-c p2c"></span> J2: <strong id="score2">0</strong></span>
-            <span class="badge">Vez: <strong id="turnLabel">Jogador 1</strong></span>
-            <span class="badge">Tabuleiro: <strong id="sizeLabel">4 × 4</strong></span>
-        </div>
-        <div id="boardWrapper">
-            <div id="board" aria-label="Tabuleiro do jogo dos pontinhos"></div>
-        </div>
-        <footer>Regra: fez caixa, joga de novo. Vence quem conquistar mais caixas.</footer>
+  <main>
+    <section class="panel" style="display:flex; flex-direction:column; min-height:0;">
+      <div class="status" id="statusBar">
+        <span class="badge"><span class="dot-c p1c"></span> J1: <strong id="score1">0</strong></span>
+        <span class="badge"><span class="dot-c p2c"></span> J2: <strong id="score2">0</strong></span>
+        <span class="badge">Vez: <strong id="turnLabel">Jogador 1</strong></span>
+        <span class="badge">Tabuleiro: <strong id="sizeLabel">4 × 4</strong></span>
+        <button id="skipBtn" class="btn" style="margin-left:auto;" disabled>Pular vez</button>
+      </div>
+      <div id="boardWrapper">
+        <div id="board" aria-label="Tabuleiro do jogo dos pontinhos"></div>
+      </div>
     </section>
-
-    <aside class="panel hist">
-        <h3>Histórico (placar final)</h3>
-        <ol id="history"></ol>
-    </aside>
-</main>
+  </main>
 
 <script>
-    (() => {
-        const els = {
-            board: document.getElementById('board'),
-            wrapper: document.getElementById('boardWrapper'),
-            score1: document.getElementById('score1'),
-            score2: document.getElementById('score2'),
-            turnLabel: document.getElementById('turnLabel'),
-            sizeLabel: document.getElementById('sizeLabel'),
-            rowsInput: document.getElementById('rowsInput'),
-            colsInput: document.getElementById('colsInput'),
-            newGameBtn: document.getElementById('newGameBtn'),
-            clearHistBtn: document.getElementById('clearHistBtn'),
-            history: document.getElementById('history'),
-        };
+(() => {
+  const els = {
+    board: document.getElementById('board'),
+    wrapper: document.getElementById('boardWrapper'),
+    score1: document.getElementById('score1'),
+    score2: document.getElementById('score2'),
+    turnLabel: document.getElementById('turnLabel'),
+    sizeLabel: document.getElementById('sizeLabel'),
+    rowsInput: document.getElementById('rowsInput'),
+    colsInput: document.getElementById('colsInput'),
+    chainToggle: document.getElementById('chainToggle'),
+    bonusToggle: document.getElementById('bonusToggle'),
+    bonusPct: document.getElementById('bonusPct'),
+    skipToggle: document.getElementById('skipToggle'),
+    newGameBtn: document.getElementById('newGameBtn'),
+    skipBtn: document.getElementById('skipBtn'),
+    legendBonus: document.getElementById('legendBonus'),
+  };
 
-        const STATE = {
-            rows: 4, cols: 4, gap: 10,
-            H: [], V: [], B: [],
-            boxesEls: [],
-            current: 1,
-            score: [0, 0],
-            totalBoxes: 0,
-            ended: false,
-        };
+  const CONFIG = {
+    chainRule: true,
+    bonusBoxes: false,
+    bonusPercent: 15,
+    allowSkip: false,
+  };
 
-        function clamp(v, min, max){ return Math.max(min, Math.min(max, v)); }
+  const STATE = {
+    rows: 4, cols: 4, gap: 10,
+    H: [], V: [], B: [],
+    boxesEls: [],
+    bonusSet: new Set(),
+    current: 1,
+    score: [0, 0],
+    totalBoxes: 0,
+    ended: false,
+    skipsLeft: [0, 0],
+  };
 
-        function initArrays(r, c) {
-            STATE.rows = r; STATE.cols = c;
-            STATE.totalBoxes = r * c;
-            STATE.H = Array.from({length: r + 1}, () => Array(c).fill(0));
-            STATE.V = Array.from({length: r}, () => Array(c + 1).fill(0));
-            STATE.B = Array.from({length: r}, () => Array(c).fill(0));
-            STATE.boxesEls = Array.from({length: r}, () => Array(c).fill(null));
-            STATE.current = 1;
-            STATE.score = [0, 0];
-            STATE.ended = false;
-            updateHUD();
+  function clamp(v, min, max){ return Math.max(min, Math.min(max, v)); }
+
+  function shuffle(arr){
+    for(let i=arr.length-1;i>0;i--){
+      const j = (Math.random()* (i+1))|0;
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  function syncConfigFromUI(){
+    CONFIG.chainRule = !!els.chainToggle.checked;
+    CONFIG.bonusBoxes = !!els.bonusToggle.checked;
+    CONFIG.bonusPercent = clamp(parseInt(els.bonusPct.value,10)||15, 5, 60);
+    CONFIG.allowSkip = !!els.skipToggle.checked;
+    els.legendBonus.style.display = CONFIG.bonusBoxes ? '' : 'none';
+  }
+
+  function initArrays(r, c) {
+    STATE.rows = r; STATE.cols = c;
+    STATE.totalBoxes = r * c;
+    STATE.H = Array.from({length: r + 1}, () => Array(c).fill(0));
+    STATE.V = Array.from({length: r}, () => Array(c + 1).fill(0));
+    STATE.B = Array.from({length: r}, () => Array(c).fill(0));
+    STATE.boxesEls = Array.from({length: r}, () => Array(c).fill(null));
+    STATE.bonusSet.clear();
+    STATE.current = 1;
+    STATE.score = [0, 0];
+    STATE.ended = false;
+    STATE.skipsLeft = CONFIG.allowSkip ? [1,1] : [0,0];
+    updateHUD();
+  }
+
+  function updateHUD() {
+    els.score1.textContent = STATE.score[0];
+    els.score2.textContent = STATE.score[1];
+    els.turnLabel.textContent = STATE.ended ? '—' : `Jogador ${STATE.current}`;
+    els.sizeLabel.textContent = `${STATE.rows} × ${STATE.cols}`;
+    els.skipBtn.disabled = !CONFIG.allowSkip || STATE.ended || STATE.skipsLeft[STATE.current-1] <= 0;
+    els.skipBtn.textContent = CONFIG.allowSkip
+      ? `Pular vez (J1:${STATE.skipsLeft[0]} | J2:${STATE.skipsLeft[1]})`
+      : 'Pular vez';
+  }
+
+  function gridTracks() {
+    return { colsTracks: STATE.cols * 2 + 1, rowsTracks: STATE.rows * 2 + 1 };
+  }
+
+  function fitCellSize() {
+    const { colsTracks, rowsTracks } = gridTracks();
+    const w = els.wrapper.clientWidth || 600;
+    const h = els.wrapper.clientHeight || 600;
+    const cellW = Math.floor((w - (colsTracks - 1) * STATE.gap) / colsTracks);
+    const cellH = Math.floor((h - (rowsTracks - 1) * STATE.gap) / rowsTracks);
+    const cell = Math.max(18, Math.min(cellW, cellH));
+    const edge = Math.max(6, Math.round(cell / 3));
+    const dot  = Math.max(6, Math.round(cell / 4));
+    els.board.style.setProperty('--cell', `${cell}px`);
+    els.board.style.setProperty('--g', `${STATE.gap}px`);
+    els.board.style.setProperty('--edge-thick', `${edge}px`);
+    els.board.style.setProperty('--dot', `${dot}px`);
+  }
+
+  function buildBoard(r, c) {
+    els.board.innerHTML = '';
+    const { colsTracks, rowsTracks } = gridTracks();
+    els.board.style.gridTemplateColumns = `repeat(${colsTracks}, var(--cell))`;
+    els.board.style.gridTemplateRows = `repeat(${rowsTracks}, var(--cell))`;
+
+    for (let R = 0; R < rowsTracks; R++) {
+      for (let C = 0; C < colsTracks; C++) {
+        if (R % 2 === 0 && C % 2 === 0) {
+          const dot = document.createElement('div');
+          dot.className = 'dot';
+          els.board.appendChild(dot);
+        } else if (R % 2 === 0 && C % 2 === 1) {
+          const hr = R >> 1;
+          const hc = (C - 1) >> 1;
+          const btn = document.createElement('button');
+          btn.className = 'edge h';
+          btn.dataset.type = 'h';
+          btn.dataset.r = String(hr);
+          btn.dataset.c = String(hc);
+          btn.setAttribute('aria-label', `Aresta horizontal L${hr+1} C${hc+1}`);
+          els.board.appendChild(btn);
+        } else if (R % 2 === 1 && C % 2 === 0) {
+          const vr = (R - 1) >> 1;
+          const vc = C >> 1;
+          const btn = document.createElement('button');
+          btn.className = 'edge v';
+          btn.dataset.type = 'v';
+          btn.dataset.r = String(vr);
+          btn.dataset.c = String(vc);
+          btn.setAttribute('aria-label', `Aresta vertical L${vr+1} C${vc+1}`);
+          els.board.appendChild(btn);
+        } else {
+          const br = (R - 1) >> 1;
+          const bc = (C - 1) >> 1;
+          const box = document.createElement('div');
+          box.className = 'box';
+          box.dataset.box = `${br},${bc}`;
+          els.board.appendChild(box);
+          STATE.boxesEls[br][bc] = box;
         }
+      }
+    }
+    fitCellSize();
+  }
 
-        function updateHUD() {
-            els.score1.textContent = STATE.score[0];
-            els.score2.textContent = STATE.score[1];
-            els.turnLabel.textContent = STATE.ended ? '—' : `Jogador ${STATE.current}`;
-            els.sizeLabel.textContent = `${STATE.rows} × ${STATE.cols}`;
-        }
+  function generateBonus() {
+    if (!CONFIG.bonusBoxes) return;
+    const total = STATE.totalBoxes;
+    const want = clamp(Math.round(total * CONFIG.bonusPercent / 100), 1, total);
+    const idxs = shuffle([...Array(total).keys()]).slice(0, want);
+    for (const k of idxs){
+      const br = Math.floor(k / STATE.cols);
+      const bc = k % STATE.cols;
+      STATE.bonusSet.add(`${br},${bc}`);
+      const el = STATE.boxesEls[br][bc];
+      if (el) el.classList.add('bonus');
+    }
+  }
 
-        function gridTracks() {
-            return { colsTracks: STATE.cols * 2 + 1, rowsTracks: STATE.rows * 2 + 1 };
-        }
+  function isBoxComplete(br, bc) {
+    return (
+      STATE.H[br][bc] &&
+      STATE.H[br + 1][bc] &&
+      STATE.V[br][bc] &&
+      STATE.V[br][bc + 1]
+    );
+  }
 
-        function fitCellSize() {
-            const { colsTracks, rowsTracks } = gridTracks();
-            // espaço interno disponível
-            const w = els.wrapper.clientWidth || 600;
-            const h = els.wrapper.clientHeight || 600;
-            const cellW = Math.floor((w - (colsTracks - 1) * STATE.gap) / colsTracks);
-            const cellH = Math.floor((h - (rowsTracks - 1) * STATE.gap) / rowsTracks);
-            const cell = Math.max(18, Math.min(cellW, cellH));
-            const edge = Math.max(6, Math.round(cell / 3));
-            const dot  = Math.max(6, Math.round(cell / 4));
+  function claimBox(br, bc, player) {
+    if (STATE.B[br][bc]) return 0;
+    STATE.B[br][bc] = player;
+    const key = `${br},${bc}`;
+    const bonus = STATE.bonusSet.has(key);
+    const pts = bonus ? 2 : 1;
+    STATE.score[player - 1] += pts;
+    const el = STATE.boxesEls[br][bc];
+    if (el) {
+      el.classList.add(player === 1 ? 'p1' : 'p2');
+      el.textContent = String(pts);
+      el.classList.remove('bonus'); // já capturada
+    }
+    return pts;
+  }
 
-            els.board.style.setProperty('--cell', `${cell}px`);
-            els.board.style.setProperty('--g', `${STATE.gap}px`);
-            els.board.style.setProperty('--edge-thick', `${edge}px`);
-            els.board.style.setProperty('--dot', `${dot}px`);
-        }
+  function checkEnd() {
+    if (STATE.score[0] + STATE.score[1] >= STATE.totalBoxes) {
+      STATE.ended = true;
+      updateHUD();
+      els.board.querySelectorAll('.edge:not([disabled])').forEach(b => b.disabled = true);
+    }
+  }
 
-        function addFinalToHistory({r, c, s1, s2}) {
-            const li = document.createElement('li');
-            const now = new Date();
-            const hh = String(now.getHours()).padStart(2,'0');
-            const mm = String(now.getMinutes()).padStart(2,'0');
-            const dd = String(now.getDate()).padStart(2,'0');
-            const mo = String(now.getMonth()+1).padStart(2,'0');
-            const yy = now.getFullYear();
-            const winner = s1 === s2 ? 'Empate' : (s1 > s2 ? 'J1' : 'J2');
-            li.textContent = `[${dd}/${mo}/${yy} ${hh}:${mm}] ${r}×${c} — ${s1}×${s2} (${winner})`;
-            els.history.appendChild(li); // flex column-reverse -> novo aparece no topo
-            // mantém no máx 200 partidas
-            while (els.history.children.length > 200) els.history.removeChild(els.history.firstChild);
-        }
+  function handleEdgeClick(target) {
+    if (!target || !target.classList.contains('edge') || STATE.ended) return;
+    if (target.disabled || target.dataset.owner) return;
 
-        function buildBoard(r, c) {
-            els.board.innerHTML = '';
-            const { colsTracks, rowsTracks } = gridTracks();
-            els.board.style.gridTemplateColumns = `repeat(${colsTracks}, var(--cell))`;
-            els.board.style.gridTemplateRows = `repeat(${rowsTracks}, var(--cell))`;
+    const type = target.dataset.type;
+    const r = Number(target.dataset.r);
+    const c = Number(target.dataset.c);
+    const player = STATE.current;
 
-            for (let R = 0; R < rowsTracks; R++) {
-                for (let C = 0; C < colsTracks; C++) {
-                    if (R % 2 === 0 && C % 2 === 0) {
-                        const dot = document.createElement('div');
-                        dot.className = 'dot';
-                        els.board.appendChild(dot);
-                    } else if (R % 2 === 0 && C % 2 === 1) {
-                        const hr = R >> 1;
-                        const hc = (C - 1) >> 1;
-                        const btn = document.createElement('button');
-                        btn.className = 'edge h';
-                        btn.dataset.type = 'h';
-                        btn.dataset.r = String(hr);
-                        btn.dataset.c = String(hc);
-                        btn.setAttribute('aria-label', `Aresta horizontal L${hr+1} C${hc+1}`);
-                        els.board.appendChild(btn);
-                    } else if (R % 2 === 1 && C % 2 === 0) {
-                        const vr = (R - 1) >> 1;
-                        const vc = C >> 1;
-                        const btn = document.createElement('button');
-                        btn.className = 'edge v';
-                        btn.dataset.type = 'v';
-                        btn.dataset.r = String(vr);
-                        btn.dataset.c = String(vc);
-                        btn.setAttribute('aria-label', `Aresta vertical L${vr+1} C${vc+1}`);
-                        els.board.appendChild(btn);
-                    } else {
-                        const br = (R - 1) >> 1;
-                        const bc = (C - 1) >> 1;
-                        const box = document.createElement('div');
-                        box.className = 'box';
-                        box.dataset.box = `${br},${bc}`;
-                        els.board.appendChild(box);
-                        STATE.boxesEls[br][bc] = box;
-                    }
-                }
-            }
-            fitCellSize();
-        }
+    if (type === 'h') STATE.H[r][c] = player; else STATE.V[r][c] = player;
+    target.dataset.owner = String(player);
+    target.disabled = true;
+    target.classList.add(player === 1 ? 'p1' : 'p2');
 
-        function isBoxComplete(br, bc) {
-            return (
-                STATE.H[br][bc] &&
-                STATE.H[br + 1][bc] &&
-                STATE.V[br][bc] &&
-                STATE.V[br][bc + 1]
-            );
-        }
+    let formed = 0;
+    if (type === 'h') {
+      if (r > 0 && isBoxComplete(r - 1, c)) formed += claimBox(r - 1, c, player) ? 1 : 0;
+      if (r < STATE.rows && isBoxComplete(r, c)) formed += claimBox(r, c, player) ? 1 : 0;
+    } else {
+      if (c > 0 && isBoxComplete(r, c - 1)) formed += claimBox(r, c - 1, player) ? 1 : 0;
+      if (c < STATE.cols && isBoxComplete(r, c)) formed += claimBox(r, c, player) ? 1 : 0;
+    }
 
-        function claimBox(br, bc, player) {
-            if (STATE.B[br][bc]) return false;
-            STATE.B[br][bc] = player;
-            const el = STATE.boxesEls[br][bc];
-            if (el) {
-                el.classList.add(player === 1 ? 'p1' : 'p2');
-                el.textContent = player === 1 ? '1' : '2';
-            }
-            STATE.score[player - 1]++;
-            return true;
-        }
+    // regra de cadeia opcional
+    if (!(CONFIG.chainRule && formed > 0)){
+      STATE.current = STATE.current === 1 ? 2 : 1;
+    }
 
-        function checkEnd() {
-            if (STATE.score[0] + STATE.score[1] >= STATE.totalBoxes) {
-                STATE.ended = true;
-                const [s1, s2] = STATE.score;
-                addFinalToHistory({ r: STATE.rows, c: STATE.cols, s1, s2 });
-                updateHUD();
-                // desabilita any remaining edges (segurança)
-                els.board.querySelectorAll('.edge:not([disabled])').forEach(b => b.disabled = true);
-            }
-        }
+    updateHUD();
+    checkEnd();
+  }
 
-        function handleEdgeClick(target) {
-            if (!target || !target.classList.contains('edge') || STATE.ended) return;
-            if (target.disabled || target.dataset.owner) return;
+  els.board.addEventListener('click', (ev) => {
+    const btn = ev.target.closest('.edge');
+    if (btn) handleEdgeClick(btn);
+  });
 
-            const type = target.dataset.type;
-            const r = Number(target.dataset.r);
-            const c = Number(target.dataset.c);
-            const player = STATE.current;
+  function newGame() {
+    syncConfigFromUI();
+    const r = clamp(parseInt(els.rowsInput.value, 10) || 4, 1, 15);
+    const c = clamp(parseInt(els.colsInput.value, 10) || 4, 1, 15);
+    initArrays(r, c);
+    buildBoard(r, c);
+    generateBonus();
+  }
 
-            if (type === 'h') STATE.H[r][c] = player; else STATE.V[r][c] = player;
-            target.dataset.owner = String(player);
-            target.disabled = true;
-            target.classList.add(player === 1 ? 'p1' : 'p2');
+  // Pular vez (x1 por jogador)
+  els.skipBtn.addEventListener('click', () => {
+    if (!CONFIG.allowSkip || STATE.ended) return;
+    const i = STATE.current - 1;
+    if (STATE.skipsLeft[i] <= 0) return;
+    STATE.skipsLeft[i]--;
+    STATE.current = STATE.current === 1 ? 2 : 1;
+    updateHUD();
+  });
 
-            let formed = 0;
-            if (type === 'h') {
-                if (r > 0 && isBoxComplete(r - 1, c)) formed += claimBox(r - 1, c, player) ? 1 : 0;
-                if (r < STATE.rows && isBoxComplete(r, c)) formed += claimBox(r, c, player) ? 1 : 0;
-            } else {
-                if (c > 0 && isBoxComplete(r, c - 1)) formed += claimBox(r, c - 1, player) ? 1 : 0;
-                if (c < STATE.cols && isBoxComplete(r, c)) formed += claimBox(r, c, player) ? 1 : 0;
-            }
+  // Botões
+  els.newGameBtn.addEventListener('click', newGame);
 
-            if (!formed) STATE.current = STATE.current === 1 ? 2 : 1;
+  // Reajuste dinâmico (sem scroll)
+  window.addEventListener('resize', fitCellSize);
+  new ResizeObserver(fitCellSize).observe(els.wrapper);
 
-            updateHUD();
-            checkEnd();
-        }
-
-        els.board.addEventListener('click', (ev) => {
-            const btn = ev.target.closest('.edge');
-            if (btn) handleEdgeClick(btn);
-        });
-
-        function newGame() {
-            const r = clamp(parseInt(els.rowsInput.value, 10) || 4, 1, 15);
-            const c = clamp(parseInt(els.colsInput.value, 10) || 4, 1, 15);
-            initArrays(r, c);
-            buildBoard(r, c);
-        }
-
-        els.newGameBtn.addEventListener('click', newGame);
-        els.clearHistBtn.addEventListener('click', () => { els.history.innerHTML = ''; });
-
-        // Reajuste dinâmico (sem scroll)
-        window.addEventListener('resize', fitCellSize);
-        // Observa mudanças no wrapper (melhor quando header quebra linha)
-        new ResizeObserver(fitCellSize).observe(els.wrapper);
-
-        // Inicializa
-        newGame();
-    })();
+  // Inicializa
+  newGame();
+})();
 </script>
 </body>
 </html>
