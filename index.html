@@ -3,135 +3,236 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Pontinhos — responsivo + mecânicas opcionais</title>
+<title>Pontinhos — responsivo + menu + efeitos</title>
 <style>
-  :root { --cell: 36px; --g: 10px; --edge-thick: 12px; --dot: 10px; }
-  * { box-sizing: border-box; }
-  html, body { height: 100%; }
+  :root{
+    --cell: 36px; --g: 10px; --edge-thick: 12px; --dot: 10px;
+    --p1:#3b82f6; --p2:#ef4444; --bg:#0f172a; --panel:#0b1220; --line:#1f2937; --text:#e5e7eb; --muted:#cbd5e1;
+  }
+  *{ box-sizing:border-box; }
+  html, body{ height:100%; }
   body{
-    height: 100dvh; margin: 0; background:#0f172a; color:#e5e7eb;
+    height:100dvh; margin:0; background:var(--bg); color:var(--text);
     font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-    display:grid; grid-template-rows:auto 1fr; overflow:hidden; /* sem scroll */
+    display:grid; grid-template-rows:auto 1fr; overflow:hidden;
   }
+
+  /* Header compacto */
   header{
-    padding:10px 12px; display:grid; gap:8px;
-    grid-template-columns: 1fr; background:#111827; border-bottom:1px solid #1f2937;
+    display:flex; align-items:center; gap:10px;
+    padding:10px 12px; background:#111827; border-bottom:1px solid var(--line);
   }
-  .row{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
-  .title{ font-weight:700; font-size:16px; letter-spacing:.2px; }
-  .controls .grp{
-    display:flex; gap:6px; align-items:center;
-    background:#0b1220; border:1px solid #1f2937; padding:6px 8px; border-radius:10px;
-  }
-  .controls input[type=number]{ width:70px; padding:6px 8px; border-radius:8px; border:1px solid #334155; background:#0b1220; color:#e5e7eb; }
-  .controls input[type=checkbox]{ accent-color:#22c55e; width:18px; height:18px; }
-  .btn{ padding:8px 12px; border-radius:10px; border:1px solid #334155; background:#0b1220; color:#e5e7eb; cursor:pointer; }
-  .btn[disabled]{ opacity:.5; cursor:not-allowed; }
-  .legend{ color:#cbd5e1; font-size:12px; }
-
-  main{ display:grid; grid-template-columns: 1fr; padding:10px; gap:10px; overflow:hidden; }
-  .panel{ background:#0b1220; border:1px solid #1f2937; border-radius:14px; padding:10px; min-height:0; }
-  .status{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
-  .badge{ padding:6px 10px; border-radius:999px; font-weight:700; border:1px solid #1f2937; display:inline-flex; gap:8px; align-items:center; }
+  .brand{ display:flex; align-items:center; gap:8px; font-weight:800; letter-spacing:.2px; }
+  .brand .logo{ width:18px; height:18px; border-radius:4px; background:linear-gradient(135deg, var(--p1), var(--p2)); box-shadow:0 0 12px rgba(59,130,246,.4); }
+  .header-right{ margin-left:auto; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .badge{ padding:6px 10px; border-radius:999px; font-weight:800; border:1px solid var(--line); display:inline-flex; gap:8px; align-items:center; background:var(--panel);}
   .dot-c{ width:10px; height:10px; border-radius:50%; display:inline-block; }
-  .p1c{ background:#3b82f6; } .p2c{ background:#ef4444; }
+  .p1c{ background:var(--p1); } .p2c{ background:var(--p2); }
 
-  #boardWrapper{ margin-top:8px; flex:1; width:100%; height:100%; display:grid; place-items:center; min-height:0; }
+  .btn, .iconbtn{
+    border:1px solid var(--line); background:var(--panel); color:var(--text);
+    border-radius:12px; cursor:pointer; transition:transform .05s ease, filter .15s ease, box-shadow .15s ease;
+  }
+  .btn{ padding:8px 12px; font-weight:600; }
+  .iconbtn{ width:40px; height:40px; display:grid; place-items:center; }
+  .btn:hover, .iconbtn:hover{ filter:brightness(1.08); }
+  .btn:active, .iconbtn:active{ transform:scale(.98); }
+  .btn[disabled]{ opacity:.5; cursor:not-allowed; }
+  .pill{ padding:4px 10px; border-radius:999px; background:#0c1222; border:1px solid var(--line); color:var(--muted); font-size:12px; }
+
+  /* Layout principal */
+  main{ padding:10px; overflow:hidden; }
+  .panel{ background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:10px; min-height:0; position:relative; }
+  .status{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+  .grow{ flex:1; }
+  #boardWrapper{ margin-top:8px; width:100%; height:calc(100% - 62px); display:grid; place-items:center; min-height:0; position:relative; }
   #board{
-    display:grid; gap: var(--g);
+    display:grid; gap:var(--g);
+    align-items:center; justify-items:center;
     grid-template-columns: repeat(5, var(--cell));
     grid-template-rows: repeat(5, var(--cell));
-    align-items:center; justify-items:center;
     max-width:100%; max-height:100%;
   }
 
-  .dot{ width: var(--dot); height: var(--dot); background:#e5e7eb; border-radius:50%; }
-  .edge{ all: unset; cursor:pointer; background:#1f2937; border-radius:999px; transition: box-shadow .06s ease, background .1s ease; }
+  /* Elementos do tabuleiro */
+  .dot{ width:var(--dot); height:var(--dot); background:var(--text); border-radius:50%; box-shadow:0 0 10px rgba(255,255,255,.12); }
+  .edge{
+    all:unset; cursor:pointer; background:#121a2a; border-radius:999px;
+    transition: transform .06s ease, box-shadow .10s ease, background .12s ease, filter .12s ease;
+    position:relative; overflow:hidden;
+  }
+  .edge::after{ content:""; position:absolute; inset:0; opacity:0; background: radial-gradient(circle at 50% 50%, rgba(255,255,255,.16), transparent 60%); transition:opacity .12s ease; }
+  .edge:hover::after{ opacity:1; }
   .edge:focus-visible{ outline:2px solid #f59e0b; outline-offset:2px; }
-  .edge.h{ width:100%; height: var(--edge-thick); }
-  .edge.v{ height:100%; width: var(--edge-thick); }
+  .edge.h{ width:100%; height:var(--edge-thick); }
+  .edge.v{ height:100%; width:var(--edge-thick); }
   .edge:hover{ box-shadow:0 0 0 2px #334155 inset; }
-  .edge.p1{ background:#3b82f6; } .edge.p2{ background:#ef4444; }
-  .edge[disabled]{ cursor:default; box-shadow:none; }
+  .edge.p1{ background:var(--p1); box-shadow:0 0 10px rgba(59,130,246,.45); }
+  .edge.p2{ background:var(--p2); box-shadow:0 0 10px rgba(239,68,68,.45); }
+  .edge[disabled]{ cursor:default; box-shadow:none; filter:saturate(.9) brightness(.95); }
+  .edge.pop{ transform:scale(1.05); }
 
-  .box{ width:100%; height:100%; border-radius:8px; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:14px; color:#e5e7eb; user-select:none; position:relative; }
-  .box.p1{ background: rgba(59,130,246,.35); }
-  .box.p2{ background: rgba(239,68,68,.35); }
-  .box.bonus:not(.p1):not(.p2){ /* destaque de bônus ainda não capturada */
+  .box{
+    width:100%; height:100%; border-radius:10px; display:flex; align-items:center; justify-content:center;
+    font-weight:900; font-size:14px; color:var(--text); user-select:none; position:relative;
+    transition: transform .12s ease, box-shadow .12s ease, background .12s ease;
+  }
+  .box.p1{ background: rgba(59,130,246,.32); box-shadow:inset 0 0 20px rgba(59,130,246,.25); }
+  .box.p2{ background: rgba(239,68,68,.32); box-shadow:inset 0 0 20px rgba(239,68,68,.25); }
+  .box.capture{ transform:scale(1.04); }
+  .box.bonus:not(.p1):not(.p2){
     background: linear-gradient(135deg, rgba(250,204,21,.15), rgba(34,197,94,.12));
-    border: 1px dashed rgba(250,204,21,.45);
+    border:1px dashed rgba(250,204,21,.45);
   }
   .box.bonus::after{
-    content:"★"; position:absolute; top:4px; right:6px; font-size:12px; color:#fde047; text-shadow:0 0 6px rgba(250,204,21,.35);
+    content:"★"; position:absolute; top:6px; right:8px; font-size:12px; color:#fde047; text-shadow:0 0 6px rgba(250,204,21,.35);
+    animation: twinkle 1.2s ease-in-out infinite;
   }
 
-  /* Mobile refinements */
-  @media (max-width: 640px){
-    .title{ font-size:15px; }
-    .controls input[type=number]{ width:64px; }
-    .badge{ font-size:13px; }
+  /* FX overlay */
+  #fxCanvas{ position:absolute; inset:0; pointer-events:none; }
+
+  /* Menu (overlay) */
+  #settings{
+    position:fixed; inset:auto 0 0 0; translate:0 100%;
+    background:rgba(9,13,24,.86); backdrop-filter: blur(6px);
+    border-top:1px solid var(--line); box-shadow:0 -16px 40px rgba(0,0,0,.35);
+    padding:12px; display:grid; gap:10px; transition:translate .25s ease;
   }
+  #settings.open{ translate:0 0; }
+  .settings-grid{
+    display:grid; gap:10px; grid-template-columns: repeat(2, minmax(0,1fr));
+  }
+  .grp{ display:flex; gap:6px; align-items:center; background:#0b1220; border:1px solid var(--line); padding:8px 10px; border-radius:12px; }
+  .grp.col{ flex-direction:column; align-items:flex-start; }
+  label{ font-size:13px; color:var(--muted); }
+  input[type=number]{ width:80px; padding:6px 8px; border-radius:8px; border:1px solid #334155; background:#0b1220; color:var(--text); }
+  input[type=checkbox]{ accent-color:#22c55e; width:18px; height:18px; }
+  input[type=range]{ width:100%; }
+
+  /* Desktop: menu lateral */
+  @media (min-width: 900px){
+    #settings{ inset:0 auto 0 0; width:340px; translate:-100% 0; border-right:1px solid var(--line); border-top:none; }
+    #settings.open{ translate:0 0; }
+  }
+
+  /* Mobile ajustes */
+  @media (max-width: 640px){
+    .badge{ font-size:13px; }
+    .iconbtn{ width:36px; height:36px; }
+  }
+
+  /* Pequenas animações */
+  @keyframes bump { 0%{transform:scale(1)} 40%{transform:scale(1.2)} 100%{transform:scale(1)} }
+  .bump{ animation: bump .22s ease; }
+  @keyframes twinkle{ 0%,100%{ transform:rotate(0deg) scale(1);} 50%{ transform:rotate(20deg) scale(1.15);} }
+  @keyframes sparkleMove{ from{ transform:translate(0,0) scale(1);} to{ transform:translate(var(--tx), var(--ty)) scale(0);} }
+  .sparkle{ position:absolute; width:6px; height:6px; border-radius:50%; pointer-events:none; animation: sparkleMove 600ms ease-out forwards; box-shadow:0 0 10px rgba(255,255,255,.25); }
 </style>
 </head>
 <body>
   <header>
-    <div class="row">
-      <div class="title">Pontinhos</div>
+    <div class="brand"><span class="logo"></span> Pontinhos</div>
+    <div class="header-right">
+      <span class="badge"><span class="dot-c p1c"></span> J1: <strong id="score1">0</strong></span>
+      <span class="badge"><span class="dot-c p2c"></span> J2: <strong id="score2">0</strong></span>
+      <span class="badge">Vez: <strong id="turnLabel">Jogador 1</strong></span>
+      <button id="skipBtn" class="btn" title="Pular vez (x1 por jogador)" disabled>⏭️ Pular</button>
+      <button id="settingsBtn" class="iconbtn" title="Configurações" aria-label="Configurações">
+        <!-- ícone engrenagem -->
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" stroke="#cbd5e1" stroke-width="1.6"/>
+          <path d="M19.4 15.5a7.94 7.94 0 0 0 .1-1.5 7.94 7.94 0 0 0-.1-1.5l2.1-1.7-2-3.5-2.6 1a8.1 8.1 0 0 0-2.6-1.5l-.4-2.8h-4l-.4 2.8a8.1 8.1 0 0 0-2.6 1.5l-2.6-1-2 3.5 2.1 1.7a7.94 7.94 0 0 0-.1 1.5c0 .5 0 1 .1 1.5L2.8 17.2l2 3.5 2.6-1a8.1 8.1 0 0 0 2.6 1.5l.4 2.8h4l.4-2.8a8.1 8.1 0 0 0 2.6-1.5l2.6 1 2-3.5-2.1-1.7Z" stroke="#64748b" stroke-width="1.2"/>
+        </svg>
+      </button>
     </div>
-    <div class="row controls">
-      <div class="grp">Linhas <input id="rowsInput" type="number" min="1" max="15" value="4" /></div>
-      <div class="grp">Colunas <input id="colsInput" type="number" min="1" max="15" value="4" /></div>
-      <div class="grp"><label><input id="chainToggle" type="checkbox" checked /> Cadeia ativa</label></div>
-      <div class="grp">
-        <label><input id="bonusToggle" type="checkbox" /> Caixas bônus</label>
-        <span>%</span><input id="bonusPct" type="number" min="5" max="60" value="15" title="% de caixas com bônus" />
-      </div>
-      <div class="grp"><label><input id="skipToggle" type="checkbox" /> Pular vez (x1)</label></div>
-      <button id="newGameBtn" class="btn">Nova partida</button>
-    </div>
-    <div class="row legend" id="legendBonus" style="display:none;">★ = caixa bônus vale 2 pontos</div>
   </header>
 
   <main>
     <section class="panel" style="display:flex; flex-direction:column; min-height:0;">
-      <div class="status" id="statusBar">
-        <span class="badge"><span class="dot-c p1c"></span> J1: <strong id="score1">0</strong></span>
-        <span class="badge"><span class="dot-c p2c"></span> J2: <strong id="score2">0</strong></span>
-        <span class="badge">Vez: <strong id="turnLabel">Jogador 1</strong></span>
-        <span class="badge">Tabuleiro: <strong id="sizeLabel">4 × 4</strong></span>
-        <button id="skipBtn" class="btn" style="margin-left:auto;" disabled>Pular vez</button>
+      <div class="status">
+        <span class="pill" id="sizeLabel">4 × 4</span>
+        <span class="pill" id="ruleLabel">Cadeia: ON • Bônus: OFF</span>
+        <div class="grow"></div>
+        <button id="newGameBtn" class="btn">Novo jogo</button>
       </div>
       <div id="boardWrapper">
+        <canvas id="fxCanvas"></canvas>
         <div id="board" aria-label="Tabuleiro do jogo dos pontinhos"></div>
       </div>
     </section>
   </main>
 
+  <!-- MENU (overlay inferior no mobile, lateral no desktop) -->
+  <aside id="settings" aria-label="Configurações do jogo">
+    <div class="settings-grid">
+      <div class="grp">Linhas <input id="rowsInput" type="number" min="1" max="15" value="4" /></div>
+      <div class="grp">Colunas <input id="colsInput" type="number" min="1" max="15" value="4" /></div>
+
+      <div class="grp"><label><input id="chainToggle" type="checkbox" checked /> Cadeia ativa (faz caixa = joga de novo)</label></div>
+
+      <div class="grp col">
+        <label style="display:flex; gap:8px; align-items:center;">
+          <input id="bonusToggle" type="checkbox" />
+          Caixas bônus (valem 2 pts)
+        </label>
+        <label style="width:100%;">% de bônus
+          <input id="bonusPct" type="range" min="5" max="60" value="15" />
+        </label>
+      </div>
+
+      <div class="grp"><label><input id="skipToggle" type="checkbox" /> Pular vez (x1 por jogador)</label></div>
+
+      <!-- Extras desativados por padrão, podem ser ligados -->
+      <div class="grp"><label><input id="suddenToggle" type="checkbox" /> Morte súbita (vence ao atingir N)</label></div>
+      <div class="grp">N (morte súbita) <input id="suddenN" type="number" min="1" max="200" value="10" /></div>
+
+      <div class="grp">Handicap J2 (+pts) <input id="handicap2" type="number" min="0" max="50" value="0" /></div>
+    </div>
+    <div style="display:flex; gap:10px; margin-top:6px;">
+      <button id="applyBtn" class="btn" style="flex:1;">Aplicar e Iniciar</button>
+      <button id="closeSettings" class="btn">Fechar</button>
+    </div>
+  </aside>
+
 <script>
 (() => {
+  /* --------- ELEMENTOS --------- */
   const els = {
     board: document.getElementById('board'),
     wrapper: document.getElementById('boardWrapper'),
+    fx: document.getElementById('fxCanvas'),
     score1: document.getElementById('score1'),
     score2: document.getElementById('score2'),
     turnLabel: document.getElementById('turnLabel'),
     sizeLabel: document.getElementById('sizeLabel'),
+    ruleLabel: document.getElementById('ruleLabel'),
+    newGameBtn: document.getElementById('newGameBtn'),
+    skipBtn: document.getElementById('skipBtn'),
+    settingsBtn: document.getElementById('settingsBtn'),
+    settings: document.getElementById('settings'),
+    applyBtn: document.getElementById('applyBtn'),
+    closeSettings: document.getElementById('closeSettings'),
     rowsInput: document.getElementById('rowsInput'),
     colsInput: document.getElementById('colsInput'),
     chainToggle: document.getElementById('chainToggle'),
     bonusToggle: document.getElementById('bonusToggle'),
     bonusPct: document.getElementById('bonusPct'),
     skipToggle: document.getElementById('skipToggle'),
-    newGameBtn: document.getElementById('newGameBtn'),
-    skipBtn: document.getElementById('skipBtn'),
-    legendBonus: document.getElementById('legendBonus'),
+    suddenToggle: document.getElementById('suddenToggle'),
+    suddenN: document.getElementById('suddenN'),
+    handicap2: document.getElementById('handicap2'),
   };
 
+  /* --------- CONFIG & STATE --------- */
   const CONFIG = {
     chainRule: true,
     bonusBoxes: false,
     bonusPercent: 15,
     allowSkip: false,
+    suddenDeath: false,
+    suddenTarget: 10,
+    handicapP2: 0,
   };
 
   const STATE = {
@@ -146,24 +247,31 @@
     skipsLeft: [0, 0],
   };
 
-  function clamp(v, min, max){ return Math.max(min, Math.min(max, v)); }
+  /* --------- HELPERS --------- */
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+  function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=(Math.random()*(i+1))|0; [arr[i],arr[j]]=[arr[j],arr[i]];} return arr; }
 
-  function shuffle(arr){
-    for(let i=arr.length-1;i>0;i--){
-      const j = (Math.random()* (i+1))|0;
-      [arr[i], arr[j]] = [arr[j], arr[i]];
-    }
-    return arr;
-  }
+  /* --------- MENU --------- */
+  function openSettings(){ els.settings.classList.add('open'); }
+  function closeSettings(){ els.settings.classList.remove('open'); }
+  els.settingsBtn.addEventListener('click', openSettings);
+  els.closeSettings.addEventListener('click', closeSettings);
 
   function syncConfigFromUI(){
     CONFIG.chainRule = !!els.chainToggle.checked;
     CONFIG.bonusBoxes = !!els.bonusToggle.checked;
     CONFIG.bonusPercent = clamp(parseInt(els.bonusPct.value,10)||15, 5, 60);
     CONFIG.allowSkip = !!els.skipToggle.checked;
-    els.legendBonus.style.display = CONFIG.bonusBoxes ? '' : 'none';
+    CONFIG.suddenDeath = !!els.suddenToggle.checked;
+    CONFIG.suddenTarget = clamp(parseInt(els.suddenN.value,10)||10, 1, 200);
+    CONFIG.handicapP2 = clamp(parseInt(els.handicap2.value,10)||0, 0, 50);
   }
 
+  function refreshRuleLabel(){
+    els.ruleLabel.textContent = `Cadeia: ${CONFIG.chainRule?'ON':'OFF'} • Bônus: ${CONFIG.bonusBoxes?'ON':'OFF'}${CONFIG.allowSkip?' • Pular: ON':''}${CONFIG.suddenDeath?' • Morte súbita: ON':''}${CONFIG.handicapP2>0?' • Handicap J2: +'+CONFIG.handicapP2:''}`;
+  }
+
+  /* --------- TABULEIRO --------- */
   function initArrays(r, c) {
     STATE.rows = r; STATE.cols = c;
     STATE.totalBoxes = r * c;
@@ -173,31 +281,38 @@
     STATE.boxesEls = Array.from({length: r}, () => Array(c).fill(null));
     STATE.bonusSet.clear();
     STATE.current = 1;
-    STATE.score = [0, 0];
+    STATE.score = [0, CONFIG.handicapP2]; // handicap aplicado ao J2
     STATE.ended = false;
     STATE.skipsLeft = CONFIG.allowSkip ? [1,1] : [0,0];
-    updateHUD();
+    updateHUD(true);
   }
 
-  function updateHUD() {
+  function updateHUD(bump){
     els.score1.textContent = STATE.score[0];
     els.score2.textContent = STATE.score[1];
+    if (bumpp1){ /* placeholder to avoid reference error if used wrongly */ }
+    if (bump === true){ // não sei qual placar mudou, anima ambos rapidamente
+      els.score1.parentElement.classList.add('bump');
+      els.score2.parentElement.classList.add('bump');
+      setTimeout(() => { els.score1.parentElement.classList.remove('bump'); els.score2.parentElement.classList.remove('bump'); }, 240);
+    }
     els.turnLabel.textContent = STATE.ended ? '—' : `Jogador ${STATE.current}`;
     els.sizeLabel.textContent = `${STATE.rows} × ${STATE.cols}`;
+    refreshRuleLabel();
     els.skipBtn.disabled = !CONFIG.allowSkip || STATE.ended || STATE.skipsLeft[STATE.current-1] <= 0;
-    els.skipBtn.textContent = CONFIG.allowSkip
-      ? `Pular vez (J1:${STATE.skipsLeft[0]} | J2:${STATE.skipsLeft[1]})`
-      : 'Pular vez';
   }
 
-  function gridTracks() {
-    return { colsTracks: STATE.cols * 2 + 1, rowsTracks: STATE.rows * 2 + 1 };
-  }
+  function gridTracks(){ return { colsTracks: STATE.cols * 2 + 1, rowsTracks: STATE.rows * 2 + 1 }; }
 
-  function fitCellSize() {
+  function fitCellSize(){
     const { colsTracks, rowsTracks } = gridTracks();
-    const w = els.wrapper.clientWidth || 600;
-    const h = els.wrapper.clientHeight || 600;
+    // Ajusta canvas FX
+    const rect = els.wrapper.getBoundingClientRect();
+    els.fx.width = Math.max(1, Math.floor(rect.width));
+    els.fx.height = Math.max(1, Math.floor(rect.height));
+
+    const w = rect.width || 600;
+    const h = rect.height || 600;
     const cellW = Math.floor((w - (colsTracks - 1) * STATE.gap) / colsTracks);
     const cellH = Math.floor((h - (rowsTracks - 1) * STATE.gap) / rowsTracks);
     const cell = Math.max(18, Math.min(cellW, cellH));
@@ -209,44 +324,32 @@
     els.board.style.setProperty('--dot', `${dot}px`);
   }
 
-  function buildBoard(r, c) {
+  function buildBoard(r, c){
     els.board.innerHTML = '';
     const { colsTracks, rowsTracks } = gridTracks();
     els.board.style.gridTemplateColumns = `repeat(${colsTracks}, var(--cell))`;
     els.board.style.gridTemplateRows = `repeat(${rowsTracks}, var(--cell))`;
 
-    for (let R = 0; R < rowsTracks; R++) {
-      for (let C = 0; C < colsTracks; C++) {
-        if (R % 2 === 0 && C % 2 === 0) {
-          const dot = document.createElement('div');
-          dot.className = 'dot';
-          els.board.appendChild(dot);
-        } else if (R % 2 === 0 && C % 2 === 1) {
-          const hr = R >> 1;
-          const hc = (C - 1) >> 1;
+    for (let R = 0; R < rowsTracks; R++){
+      for (let C = 0; C < colsTracks; C++){
+        if (R % 2 === 0 && C % 2 === 0){
+          const dot = document.createElement('div'); dot.className='dot'; els.board.appendChild(dot);
+        } else if (R % 2 === 0 && C % 2 === 1){
+          const hr = R >> 1, hc = (C - 1) >> 1;
           const btn = document.createElement('button');
-          btn.className = 'edge h';
-          btn.dataset.type = 'h';
-          btn.dataset.r = String(hr);
-          btn.dataset.c = String(hc);
+          btn.className='edge h'; btn.dataset.type='h'; btn.dataset.r=String(hr); btn.dataset.c=String(hc);
           btn.setAttribute('aria-label', `Aresta horizontal L${hr+1} C${hc+1}`);
           els.board.appendChild(btn);
-        } else if (R % 2 === 1 && C % 2 === 0) {
-          const vr = (R - 1) >> 1;
-          const vc = C >> 1;
+        } else if (R % 2 === 1 && C % 2 === 0){
+          const vr = (R - 1) >> 1, vc = C >> 1;
           const btn = document.createElement('button');
-          btn.className = 'edge v';
-          btn.dataset.type = 'v';
-          btn.dataset.r = String(vr);
-          btn.dataset.c = String(vc);
+          btn.className='edge v'; btn.dataset.type='v'; btn.dataset.r=String(vr); btn.dataset.c=String(vc);
           btn.setAttribute('aria-label', `Aresta vertical L${vr+1} C${vc+1}`);
           els.board.appendChild(btn);
         } else {
-          const br = (R - 1) >> 1;
-          const bc = (C - 1) >> 1;
+          const br = (R - 1) >> 1, bc = (C - 1) >> 1;
           const box = document.createElement('div');
-          box.className = 'box';
-          box.dataset.box = `${br},${bc}`;
+          box.className='box'; box.dataset.box=`${br},${bc}`;
           els.board.appendChild(box);
           STATE.boxesEls[br][bc] = box;
         }
@@ -255,118 +358,196 @@
     fitCellSize();
   }
 
-  function generateBonus() {
+  /* --------- BÔNUS --------- */
+  function generateBonus(){
     if (!CONFIG.bonusBoxes) return;
     const total = STATE.totalBoxes;
     const want = clamp(Math.round(total * CONFIG.bonusPercent / 100), 1, total);
     const idxs = shuffle([...Array(total).keys()]).slice(0, want);
     for (const k of idxs){
-      const br = Math.floor(k / STATE.cols);
-      const bc = k % STATE.cols;
-      STATE.bonusSet.add(`${br},${bc}`);
+      const br = Math.floor(k / STATE.cols), bc = k % STATE.cols;
+      const key = `${br},${bc}`;
+      STATE.bonusSet.add(key);
       const el = STATE.boxesEls[br][bc];
       if (el) el.classList.add('bonus');
     }
   }
 
-  function isBoxComplete(br, bc) {
-    return (
-      STATE.H[br][bc] &&
-      STATE.H[br + 1][bc] &&
-      STATE.V[br][bc] &&
-      STATE.V[br][bc + 1]
-    );
+  /* --------- REGRAS --------- */
+  function isBoxComplete(br, bc){
+    return (STATE.H[br][bc] && STATE.H[br+1][bc] && STATE.V[br][bc] && STATE.V[br][bc+1]);
   }
 
-  function claimBox(br, bc, player) {
+  function claimBox(br, bc, player){
     if (STATE.B[br][bc]) return 0;
     STATE.B[br][bc] = player;
     const key = `${br},${bc}`;
     const bonus = STATE.bonusSet.has(key);
     const pts = bonus ? 2 : 1;
-    STATE.score[player - 1] += pts;
+    STATE.score[player-1] += pts;
+
     const el = STATE.boxesEls[br][bc];
-    if (el) {
-      el.classList.add(player === 1 ? 'p1' : 'p2');
+    if (el){
+      el.classList.add(player===1?'p1':'p2', 'capture');
       el.textContent = String(pts);
-      el.classList.remove('bonus'); // já capturada
+      el.classList.remove('bonus');
+      setTimeout(()=> el.classList.remove('capture'), 160);
+      spawnSparkles(el, player===1?getCssVar('--p1'):getCssVar('--p2'));
     }
+    scoreBump(player);
     return pts;
   }
 
-  function checkEnd() {
-    if (STATE.score[0] + STATE.score[1] >= STATE.totalBoxes) {
-      STATE.ended = true;
-      updateHUD();
-      els.board.querySelectorAll('.edge:not([disabled])').forEach(b => b.disabled = true);
+  function checkEnd(){
+    const captured = STATE.score[0] + STATE.score[1];
+    if (CONFIG.suddenDeath){
+      if (STATE.score[0] >= CONFIG.suddenTarget || STATE.score[1] >= CONFIG.suddenTarget){
+        STATE.ended = true; updateHUD(); lockEdges(); fireConfetti(STATE.score[0] > STATE.score[1] ? 1 : 2);
+        return;
+      }
+    }
+    if (captured >= STATE.totalBoxes){
+      STATE.ended = true; updateHUD(); lockEdges(); fireConfetti(STATE.score[0]===STATE.score[1]?0:(STATE.score[0]>STATE.score[1]?1:2));
     }
   }
 
-  function handleEdgeClick(target) {
+  function lockEdges(){ els.board.querySelectorAll('.edge:not([disabled])').forEach(b=> b.disabled=true); }
+
+  /* --------- EVENTOS DE JOGADA --------- */
+  function handleEdgeClick(target){
     if (!target || !target.classList.contains('edge') || STATE.ended) return;
     if (target.disabled || target.dataset.owner) return;
 
     const type = target.dataset.type;
-    const r = Number(target.dataset.r);
-    const c = Number(target.dataset.c);
+    const r = Number(target.dataset.r), c = Number(target.dataset.c);
     const player = STATE.current;
 
-    if (type === 'h') STATE.H[r][c] = player; else STATE.V[r][c] = player;
+    if (type==='h') STATE.H[r][c]=player; else STATE.V[r][c]=player;
     target.dataset.owner = String(player);
     target.disabled = true;
-    target.classList.add(player === 1 ? 'p1' : 'p2');
+    target.classList.add(player===1?'p1':'p2', 'pop');
+    setTimeout(()=> target.classList.remove('pop'), 120);
 
     let formed = 0;
-    if (type === 'h') {
-      if (r > 0 && isBoxComplete(r - 1, c)) formed += claimBox(r - 1, c, player) ? 1 : 0;
-      if (r < STATE.rows && isBoxComplete(r, c)) formed += claimBox(r, c, player) ? 1 : 0;
+    if (type==='h'){
+      if (r>0 && isBoxComplete(r-1,c)) formed += claimBox(r-1,c,player)?1:0;
+      if (r<STATE.rows && isBoxComplete(r,c)) formed += claimBox(r,c,player)?1:0;
     } else {
-      if (c > 0 && isBoxComplete(r, c - 1)) formed += claimBox(r, c - 1, player) ? 1 : 0;
-      if (c < STATE.cols && isBoxComplete(r, c)) formed += claimBox(r, c, player) ? 1 : 0;
+      if (c>0 && isBoxComplete(r,c-1)) formed += claimBox(r,c-1,player)?1:0;
+      if (c<STATE.cols && isBoxComplete(r,c)) formed += claimBox(r,c,player)?1:0;
     }
 
-    // regra de cadeia opcional
-    if (!(CONFIG.chainRule && formed > 0)){
-      STATE.current = STATE.current === 1 ? 2 : 1;
+    if (!(CONFIG.chainRule && formed>0)){
+      STATE.current = STATE.current===1?2:1;
     }
-
     updateHUD();
     checkEnd();
   }
 
-  els.board.addEventListener('click', (ev) => {
-    const btn = ev.target.closest('.edge');
-    if (btn) handleEdgeClick(btn);
+  els.board.addEventListener('click', ev=>{
+    const btn = ev.target.closest('.edge'); if (btn) handleEdgeClick(btn);
   });
 
-  function newGame() {
+  /* --------- NOVO JOGO --------- */
+  function newGame(closeMenu=true){
     syncConfigFromUI();
-    const r = clamp(parseInt(els.rowsInput.value, 10) || 4, 1, 15);
-    const c = clamp(parseInt(els.colsInput.value, 10) || 4, 1, 15);
+    const r = clamp(parseInt(els.rowsInput.value,10)||4, 1, 15);
+    const c = clamp(parseInt(els.colsInput.value,10)||4, 1, 15);
     initArrays(r, c);
     buildBoard(r, c);
     generateBonus();
+    if (closeMenu) closeSettings();
   }
 
-  // Pular vez (x1 por jogador)
-  els.skipBtn.addEventListener('click', () => {
+  els.newGameBtn.addEventListener('click', ()=> newGame(false)); // não força fechar (caso usuário queira ver configs)
+  els.applyBtn.addEventListener('click', ()=> newGame(true));
+
+  /* --------- PULAR VEZ --------- */
+  els.skipBtn.addEventListener('click', ()=>{
     if (!CONFIG.allowSkip || STATE.ended) return;
-    const i = STATE.current - 1;
+    const i = STATE.current-1;
     if (STATE.skipsLeft[i] <= 0) return;
     STATE.skipsLeft[i]--;
-    STATE.current = STATE.current === 1 ? 2 : 1;
+    STATE.current = STATE.current===1?2:1;
     updateHUD();
   });
 
-  // Botões
-  els.newGameBtn.addEventListener('click', newGame);
+  /* --------- FX: Confete e Sparkles --------- */
+  function getCssVar(name){
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || '#fff';
+  }
 
-  // Reajuste dinâmico (sem scroll)
+  function fireConfetti(winner){
+    const ctx = els.fx.getContext('2d');
+    const W = els.fx.width, H = els.fx.height;
+    const colors = winner===1 ? [getCssVar('--p1'),'#60a5fa','#93c5fd'] :
+                   winner===2 ? [getCssVar('--p2'),'#f87171','#fca5a5'] :
+                                ['#e5e7eb','#94a3b8','#cbd5e1'];
+    const N = 160;
+    const pieces = Array.from({length:N}, ()=>({
+      x: Math.random()*W, y: -20 - Math.random()*H*0.2,
+      r: 4+Math.random()*5, s: 1+Math.random()*2,
+      a: Math.random()*Math.PI*2, v: 1+Math.random()*2.5,
+      col: colors[(Math.random()*colors.length)|0],
+      tilt: Math.random()*0.8, spin: (Math.random()>.5?1:-1)*(0.02+Math.random()*0.03)
+    }));
+
+    let t0 = performance.now();
+    function anim(t){
+      const dt = (t - t0)/16.7; t0 = t;
+      ctx.clearRect(0,0,W,H);
+      pieces.forEach(p=>{
+        p.y += p.v * dt; p.x += Math.sin(p.a += 0.03*dt) * p.s; p.tilt += p.spin*dt;
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.tilt);
+        ctx.fillStyle = p.col;
+        ctx.fillRect(-p.r*0.5, -p.r*0.22, p.r, p.r*0.44);
+        ctx.restore();
+      });
+    }
+    let running = true;
+    const raf = () => { if (!running) return; anim(performance.now()); requestAnimationFrame(raf); };
+    raf();
+    setTimeout(()=>{ running=false; const ctx2=els.fx.getContext('2d'); ctx2.clearRect(0,0,W,H); }, 2200);
+  }
+
+  function spawnSparkles(boxEl, color){
+    const rectB = boxEl.getBoundingClientRect();
+    const rectW = els.wrapper.getBoundingClientRect();
+    const cx = rectB.left - rectW.left + rectB.width/2;
+    const cy = rectB.top  - rectW.top  + rectB.height/2;
+    for (let i=0; i<10; i++){
+      const sp = document.createElement('div');
+      sp.className='sparkle';
+      const ang = Math.random()*Math.PI*2;
+      const dist = 20 + Math.random()*40;
+      const tx = Math.cos(ang)*dist;
+      const ty = Math.sin(ang)*dist;
+      sp.style.left = (cx-3)+'px';
+      sp.style.top  = (cy-3)+'px';
+      sp.style.setProperty('--tx', tx+'px');
+      sp.style.setProperty('--ty', ty+'px');
+      sp.style.background = color;
+      els.wrapper.appendChild(sp);
+      setTimeout(()=> sp.remove(), 650);
+    }
+  }
+
+  function scoreBump(player){
+    const el = player===1 ? els.score1.parentElement : els.score2.parentElement;
+    el.classList.add('bump'); setTimeout(()=> el.classList.remove('bump'), 220);
+  }
+
+  /* --------- RESIZE --------- */
   window.addEventListener('resize', fitCellSize);
+  window.addEventListener('orientationchange', ()=> setTimeout(fitCellSize, 100));
   new ResizeObserver(fitCellSize).observe(els.wrapper);
 
-  // Inicializa
-  newGame();
+  /* --------- INIT --------- */
+  // Abre o menu ao entrar; ao aplicar, fecha para dar mais espaço ao tabuleiro.
+  openSettings();
+  newGame(false); // mostra o board imediatamente (com valores padrão)
 })();
 </script>
 </body>
